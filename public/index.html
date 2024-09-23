@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Resume Roaster</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      width: 500px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .file-input {
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .result {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 20px;
+      text-align: left;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .progress {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .error-message {
+      color: red;
+      margin-top: 10px;
+    }
+
+    .success-message {
+      color: green;
+      margin-top: 10px;
+    }
+
+    /* Loading spinner style */
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      display: none; /* Hidden by default */
+      margin: auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Upload Your Resume</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="resume" id="resume" class="file-input" accept="application/pdf" required>
+      <button type="submit">Upload Resume</button>
+    </form>
+
+    <div class="loader" id="loader"></div>
+    <p class="progress" id="progress"></p>
+    <p class="error-message" id="error-message"></p>
+    <p class="success-message" id="success-message"></p>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const result = document.getElementById('result');
+    const progress = document.getElementById('progress');
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    const loader = document.getElementById('loader');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append('resume', document.getElementById('resume').files[0]);
+
+      // Reset UI
+      result.innerHTML = '';
+      progress.textContent = 'Uploading...';
+      errorMessage.textContent = '';
+      successMessage.textContent = '';
+      loader.style.display = 'block'; // Show loader
+
+      try {
+        const response = await fetch('/analyze-resume', { // Updated endpoint
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          successMessage.textContent = 'Resume uploaded and processed successfully!';
+          progress.textContent = '';
+          result.textContent = JSON.stringify(data.roast, null, 2); // Display API result
+        } else {
+          throw new Error('Failed to process resume');
+        }
+      } catch (error) {
+        progress.textContent = '';
+        errorMessage.textContent = 'Error: ' + error.message;
+      } finally {
+        loader.style.display = 'none'; // Hide loader
+      }
+    });
+  </script>
+
+</body>
+</html>
